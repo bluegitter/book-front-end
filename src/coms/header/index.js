@@ -1,13 +1,13 @@
 import React from 'react';
-import {book as getBook} from '../../services/index';
-import { Input, AutoComplete, Icon} from 'antd';
+import { book as getBook } from '../../services/index';
+import { Input, AutoComplete, Icon } from 'antd';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 
 import styles from './index.less';
 const { Option } = AutoComplete;
 
-class Header extends React.Component{
+class Header extends React.Component {
   state = {
     book: {},
     options: []
@@ -20,7 +20,7 @@ class Header extends React.Component{
     onChange: PropTypes.func
   }
 
-  async componentDidMount(){
+  async componentDidMount() {
     const book = await getBook();
     this.setState({
       book
@@ -30,16 +30,16 @@ class Header extends React.Component{
 
 
   handleSearch = (value) => {
-    const {docSearch, docToc, docsearchTitle} = this.props;
-    if ( (docsearchTitle[value] && docsearchTitle[value].length) || (docSearch[value] && docSearch[value].length)) {
+    const { docSearch, docToc, docsearchTitle } = this.props;
+    if ((docsearchTitle[value] && docsearchTitle[value].length) || (docSearch[value] && docSearch[value].length)) {
       let mergeArr = _.concat(docsearchTitle[value] || [], docSearch[value] || []);
       mergeArr = _.uniq(mergeArr);
       let arr = [];
 
       for (let i = 0; i < mergeArr.length; i++) {
-        let detailToc = _.find(docToc, (o) => { return o.doc_id == mergeArr[i]});
+        let detailToc = _.find(docToc, (o) => { return o.doc_id === mergeArr[i] });
 
-        if(!detailToc) {
+        if (!detailToc) {
           continue;
         }
 
@@ -60,27 +60,27 @@ class Header extends React.Component{
     }
   }
   onSelect = (value) => {
-    const {docToc, onChange} = this.props;
-    let detailToc = _.find(docToc, (o) => { return o.doc_id == value});
+    const { docToc, onChange } = this.props;
+    let detailToc = _.find(docToc, (o) => { return o.doc_id === value });
     onChange(detailToc.slug)
   };
 
   renderOption = (item) => {
 
     return (
-      <Option  key={item.slug} text={item.titleTip}>
+      <Option key={item.slug} text={item.titleTip}>
         <div title={item.titleTip} className="global-search-item">
-          <span dangerouslySetInnerHTML={{ __html:  item.title}} className="global-search-item-desc">
+          <span dangerouslySetInnerHTML={{ __html: item.title }} className="global-search-item-desc">
           </span>
         </div>
       </Option>
     );
   }
-  
 
-  render(){
-    const {book, options} = this.state;
-    const {docSearch} = this.props;
+
+  render() {
+    const { book, options } = this.state;
+    const { docSearch } = this.props;
 
     return (
       <div className={styles.header}>
@@ -88,17 +88,17 @@ class Header extends React.Component{
           {book.name}
           {docSearch && (
             <AutoComplete
-                className={styles.search}
-                size="large"
-                dataSource={options.map(this.renderOption)}
-                style={{ width: '300px',border: '0px'}}
-                onSelect={this.onSelect}
-                onSearch={this.handleSearch}
-                placeholder="input here"
-                optionLabelProp="text"
-              >
-                <Input suffix={<Icon type="search" className="certain-category-icon" />} />
-              </AutoComplete>
+              className={styles.search}
+              size="large"
+              dataSource={options.map(this.renderOption)}
+              style={{ width: '300px', border: '0px' }}
+              onSelect={this.onSelect}
+              onSearch={this.handleSearch}
+              placeholder="input here"
+              optionLabelProp="text"
+            >
+              <Input suffix={<Icon type="search" className="certain-category-icon" />} />
+            </AutoComplete>
           )
           }
         </div>

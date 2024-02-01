@@ -61,7 +61,7 @@ class Sider extends React.Component{
   trigger = (key) => {
     const {expanded} = this.state;
     if(expanded.includes(key)){
-      _.remove(expanded, k => k == key);
+      _.remove(expanded, k => k === key);
     } else {
       expanded.push(key);
     }

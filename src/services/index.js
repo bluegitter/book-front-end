@@ -8,7 +8,7 @@ export const toc = async () => {
 export const searchDoc = async () => {
   try {
     return request.get(`data/search/search.json`).then(d => d.body);
-  } catch(error)  {
+  } catch (error) {
     console.error(error)
   }
 }
@@ -16,12 +16,18 @@ export const searchDoc = async () => {
 export const searchTitle = async () => {
   try {
     return request.get(`data/search/search-title.json`).then(d => d.body);
-  } catch(error)  {
+  } catch (error) {
     console.error(error)
   }
 }
 
-
+export const pageCount = (pageId) => {
+  try {
+    return request.get(`/count?page=${pageId}`).then(d => d.body);
+  } catch (error) {
+    console.error(error)
+  }
+}
 
 export const doc = async (slug) => {
   return request.get(`${baseUrl}/${slug}.json`).then(d => d.body);
@@ -29,8 +35,8 @@ export const doc = async (slug) => {
 
 export const getFirstSlug = async () => {
   const result = await toc();
-  for(let toc of result){
-    if(toc.slug !== '#'){
+  for (let toc of result) {
+    if (toc.slug !== '#') {
       return toc.slug;
     }
   }

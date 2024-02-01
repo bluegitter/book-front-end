@@ -6,18 +6,17 @@ import hljs from 'highlight.js';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import inViewport from 'in-viewport';
-import {withRouter} from 'dva/router';
-
-import {copyButton} from '../../util/copy';
+import { withRouter } from 'dva/router';
+import { copyButton } from '../../util/copy';
 
 import 'highlight.js/styles/github.css'
-import {getQuery, getSearch} from '../../util/query';
+import { getQuery, getSearch } from '../../util/query';
 
 import styles from './index.less';
 
 const MATCH_TAGS = ['H1', 'H2', 'H3', 'H4'];
 
-class Body extends React.Component{
+class Body extends React.Component {
   static propTypes = {
     doc: PropTypes.shape({
       title: PropTypes.string,
@@ -31,17 +30,19 @@ class Body extends React.Component{
     }),
     history: PropTypes.shape({
       push: PropTypes.func
-    })
+    }),
+    pageCount: PropTypes.number
   }
 
   state = {
     toc: [],
-    activeTocId: null
+    activeTocId: null,
+    visitCount: 0
   }
 
   componentDidUpdate = (nextProps) => {
-    if(nextProps.doc !== this.props.doc){
-      $('pre code').each(function(i, block) {
+    if (nextProps.doc !== this.props.doc) {
+      $('pre code').each(function (i, block) {
         hljs.highlightBlock(block);
         copyButton(block);
       });
@@ -50,20 +51,22 @@ class Body extends React.Component{
 
       const search = _.get(this, 'props.location.search');
 
-      if(!search) {
+      if (!search) {
         this.topDOM && this.topDOM.scrollIntoView(true);
-      }      
+      }
     }
   }
 
   componentDidMount = () => {
     const search = _.get(this, 'props.location.search');
 
+
     // 锚点恢复
-    if(search) {
+    if (search) {
       const query = qs.parse(search);
       const anchor = query.anchor;
-      if(anchor) {
+
+      if (anchor) {
         this.setState({
           activeTocId: anchor
         });
@@ -85,15 +88,15 @@ class Body extends React.Component{
 
     const toc = [];
 
-    for(let ele of hs) {
+    for (let ele of hs) {
       ele = $(ele);
 
-      if(isaAnchor(ele)) {
+      if (isaAnchor(ele)) {
         toc.push({
-            ele,
-            title: ele.text(),
-            id: ele.attr('id'),
-            level: Number(ele[0].tagName.replace(/H/g, '')),
+          ele,
+          title: ele.text(),
+          id: ele.attr('id'),
+          level: Number(ele[0].tagName.replace(/H/g, '')),
         });
       }
     }
@@ -107,16 +110,16 @@ class Body extends React.Component{
   }
 
   onScroll = () => {
-    const {toc} = this.state;
-    for(let item of toc) {
-      const ele = _.get(item,'ele[0]');
-      if(!ele) {
+    const { toc } = this.state;
+    for (let item of toc) {
+      const ele = _.get(item, 'ele[0]');
+      if (!ele) {
         continue;
       }
 
-      if(inViewport(ele, {
+      if (inViewport(ele, {
         offset: -60 // 这里的 viewport 应该是 body 部分，不包含 header
-      })){
+      })) {
         this.setState({
           activeTocId: item.id
         });
@@ -127,7 +130,7 @@ class Body extends React.Component{
   }
 
   toView = (id) => {
-    const {location} = this.props;
+    const { location } = this.props;
 
     return () => {
       const query = getQuery(location.search);
@@ -143,54 +146,56 @@ class Body extends React.Component{
     };
   }
 
-  render(){
-    const {doc} = this.props;
-    if(!doc){
+  render() {
+    const { doc } = this.props;
+    if (!doc) {
       return null;
     }
 
-    const {toc, activeTocId} = this.state;
-
+    const visitCount = _.get(this, 'props.pageCount');
+    const { toc, activeTocId } = this.state;
     return (
-      <div 
+      <div
         onScroll={this.onScroll}
         className={styles.container + " lake-engine-view"}
       >
         <div ref={(dom) => this.topDOM = dom}></div>
         <div className={styles['doc-container'] + ' typo'} id="yuque-book-container">
-          <h1>{doc.title}</h1>
-          <div 
-            dangerouslySetInnerHTML={{__html: doc.body_html}}
+          <h1>{doc.title}
+            <span style={{ color: 'gray', fontSize: 'small' }}> 本文档已被阅读{visitCount}次数. </span>
+          </h1>
+          <div
+            dangerouslySetInnerHTML={{ __html: doc.body_html }}
           >
           </div>
           <div className={styles['doc-wrapper']}>
-          <div className={classnames(styles['doc-toc'], styles['has-width'])}>
-            {
-              toc.map(item => {
-                return (
-                  <div 
-                    className={
-                      classnames(
-                        styles['doc-item'],  
+            <div className={classnames(styles['doc-toc'], styles['has-width'])}>
+              {
+                toc.map(item => {
+                  return (
+                    <div
+                      className={
+                        classnames(
+                          styles['doc-item'],
+                          {
+                            [styles['doc-item-active']]: activeTocId === item.id
+                          }
+                        )
+                      }
+                      title={item.title}
+                      onClick={this.toView(item.id)}
+                    >
+                      <span className={`doc-link doc-link-${item.depth}`}>
                         {
-                          [styles['doc-item-active']]: activeTocId === item.id
+                          item.title.trim()
                         }
-                      )
-                    }
-                    title={item.title}
-                    onClick={this.toView(item.id)}
-                  >
-                    <span className={`doc-link doc-link-${item.depth}`}>
-                    {
-                      item.title.trim()
-                    }
-                    </span>
-                  </div>
-                )
-              })
-            }
-          </div>   
-          </div>       
+                      </span>
+                    </div>
+                  )
+                })
+              }
+            </div>
+          </div>
         </div>
       </div>
     )

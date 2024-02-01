@@ -1,14 +1,14 @@
 import React from 'react';
 import _ from 'lodash';
-import {connect} from 'dva';
+import { connect } from 'dva';
 import NProgress from 'nprogress';
 import PropTypes from 'prop-types';
 
 import Body from '../coms/body';
 import Sider from '../coms/sider';
 import Header from '../coms/header';
-import {getQuery, getSearch} from '../util/query';
-import {doc, getFirstSlug, searchDoc, searchTitle, toc} from '../services/index';
+import { getQuery, getSearch } from '../util/query';
+import { doc, getFirstSlug, searchDoc, searchTitle, toc, pageCount } from '../services/index';
 
 import styles from './IndexPage.less';
 import 'nprogress/nprogress.css';
@@ -17,7 +17,7 @@ NProgress.configure({
   showSpinner: false
 });
 
-class Index extends React.Component{
+class Index extends React.Component {
   static propTypes = {
     history: PropTypes.shape({
       push: PropTypes.func
@@ -30,25 +30,26 @@ class Index extends React.Component{
     docBody: null,
     docSearch: null,
     docsearchTitle: null,
-    docToc: []
+    docToc: [],
+    pageCount: 0
   }
 
   // 获取当前的slug
   getSlug = (location = this.props.location) => {
     let slug = location.pathname.replace(/\.html$/, '');
-    if(slug.startsWith('/')){
+    if (slug.startsWith('/')) {
       slug = slug.replace(/^\//, '');
     }
     return slug;
   }
 
-  async componentDidMount(){
-    const {location} = this.props;
+  async componentDidMount() {
+    const { location } = this.props;
     const slug = this.getSlug(location);
     const search = _.get(this, 'props.location.search')
     const query = getQuery(search);
 
-    if(query.headless === 'true') {
+    if (query.headless === 'true') {
       this.setState({
         headless: true
       });
@@ -58,25 +59,26 @@ class Index extends React.Component{
     const docsearchTitle = await searchTitle();
     const docToc = await toc();
 
+
     this.setState({
       docSearch: docSearch,
       docsearchTitle: docsearchTitle,
       docToc: docToc
     });
 
-    if(slug){
-      this.getDocByLocation(location); 
+    if (slug) {
+      this.getDocByLocation(location);
     } else {
       // 获取最近的一个slug
       const firstSlug = await getFirstSlug();
-      if(firstSlug){
+      if (firstSlug) {
         this.onChange(firstSlug);
       }
     }
   }
 
-  componentWillReceiveProps(nextProps){
-    if(nextProps.location.pathname !== this.props.location.pathname){
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location.pathname !== this.props.location.pathname) {
       const slug = this.getSlug(nextProps.location);
 
       this.onChange(slug);
@@ -85,13 +87,13 @@ class Index extends React.Component{
 
   getDocByLocation = (location) => {
     const slug = this.getSlug(location);
-    if(!this.state.docBody){
+    if (!this.state.docBody) {
       this.onChange(slug);
     }
   }
 
   onChange = async (slug) => {
-    const {history, location} = this.props;
+    const { history, location } = this.props;
     const query = getQuery(location.search);
 
     delete query.anchor;
@@ -102,38 +104,39 @@ class Index extends React.Component{
     history.push(location);
     NProgress.start();
 
-    try{
+    try {
       const docBody = await doc(slug);
-
+      const pageCnt = await pageCount(slug)
       this.setState({
-        docBody: docBody
+        docBody: docBody,
+        pageCount: pageCnt ? pageCnt.count : 0
       });
-    } catch(e){
+    } catch (e) {
       console.log(e);
     }
 
     NProgress.done();
   }
 
-  render(){
-    const {docBody, headless, docSearch, docToc, docsearchTitle} = this.state;
+  render() {
+    const { docBody, headless, docSearch, docToc, docsearchTitle, pageCount } = this.state;
 
     return (
       <div className={styles.normal}>
         {
-          !headless && <Header docsearchTitle={docsearchTitle}  docSearch={docSearch} docToc={docToc} onChange={this.onChange}/>
+          !headless && <Header docsearchTitle={docsearchTitle} docSearch={docSearch} docToc={docToc} onChange={this.onChange} />
         }
         <div className={styles.body}>
           {
             !headless && (
-              <Sider 
+              <Sider
                 onChange={this.onChange}
                 defaultSlug={this.getSlug()}
                 slug={this.getSlug()}
               />
             )
           }
-          <Body doc={docBody} />
+          <Body doc={docBody} pageCount={pageCount} />
         </div>
       </div>
     );
