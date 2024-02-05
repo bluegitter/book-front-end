@@ -133,7 +133,7 @@ class Index extends React.Component {
               />
             )
           }
-          <Body doc={docBody} pageCount={pageCount} />
+          <Body doc={docBody} slug={this.getSlug()} pageCount={pageCount} />
         </div>
       </div>
     );

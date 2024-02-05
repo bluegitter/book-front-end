@@ -31,7 +31,8 @@ class Body extends React.Component {
     history: PropTypes.shape({
       push: PropTypes.func
     }),
-    pageCount: PropTypes.number
+    pageCount: PropTypes.number,
+    slug: PropTypes.string
   }
 
   state = {
@@ -56,10 +57,12 @@ class Body extends React.Component {
       }
     }
 
-    const docSlug = _.get(this, 'props.doc.slug');
+    const docSlug = _.get(this, 'props.slug');
     const title = _.get(this, 'props.doc.title');
+    console.log(docSlug, title)
     if (docSlug && title && window._hmt) {
-      window._hmt.push(['_trackEvent', 'doc', 'view', docSlug]);
+      // window._hmt.push(['_trackEvent', 'doc', 'view', docSlug]);
+      window._hmt.push(['_trackPageview', `/docs/#/${docSlug}.html`])
     }
   }
 
