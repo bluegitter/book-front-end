@@ -55,14 +55,11 @@ class Index extends React.Component {
       });
     }
 
-    const docSearch = await searchDoc();
-    const docsearchTitle = await searchTitle();
+    // const docSearch = await searchDoc();
+    // const docsearchTitle = await searchTitle();
     const docToc = await toc();
 
-
     this.setState({
-      docSearch: docSearch,
-      docsearchTitle: docsearchTitle,
       docToc: docToc
     });
 

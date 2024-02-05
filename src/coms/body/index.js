@@ -55,11 +55,16 @@ class Body extends React.Component {
         this.topDOM && this.topDOM.scrollIntoView(true);
       }
     }
+
+    const docSlug = _.get(this, 'props.doc.slug');
+    const title = _.get(this, 'props.doc.title');
+    if (docSlug && title && window._hmt) {
+      window._hmt.push(['_trackEvent', 'doc', 'view', docSlug]);
+    }
   }
 
   componentDidMount = () => {
     const search = _.get(this, 'props.location.search');
-
 
     // 锚点恢复
     if (search) {
@@ -74,6 +79,12 @@ class Body extends React.Component {
         setTimeout(this.toView(anchor), 100);
       }
     }
+
+    const script = document.createElement("script");
+    script.src = "https://hm.baidu.com/hm.js?80b8dff5f35018a47a0524b880ab5da6";
+    script.async = true;
+
+    document.body.appendChild(script);
   }
 
   // 初始化右侧toc
